@@ -26,12 +26,11 @@ export default function NeuralField({ className = '', density = 1100, stroke = f
     // Generate points on a sphere using Fibonacci sphere
     const createPoints = (n) => {
       const pts = [];
-      const phi = Math.PI * (3 - Math.sqrt(5)); // golden angle
+      const phi = Math.PI * (3 - Math.sqrt(5));
       for (let i = 0; i < n; i++) {
-        const y = 1 - (i / (n - 1)) * 2; // y from 1 to -1
+        const y = 1 - (i / (n - 1)) * 2;
         const radius = Math.sqrt(1 - y * y);
         const theta = phi * i;
-        // Jitter slightly to feel organic
         const jitter = 0.015;
         const x = Math.cos(theta) * radius + (Math.random() - 0.5) * jitter;
         const z = Math.sin(theta) * radius + (Math.random() - 0.5) * jitter;
@@ -47,25 +46,17 @@ export default function NeuralField({ className = '', density = 1100, stroke = f
     let rotY = 0.4;
 
     const project = (p, fov, camZ) => {
-      // Rotate
       const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
       const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
-      // Y rotation
       let x = p.x * cosY - p.z * sinY;
       let z = p.x * sinY + p.z * cosY;
       let y = p.y;
-      // X rotation
       let yy = y * cosX - z * sinX;
       let zz = y * sinX + z * cosX;
 
       const dz = zz + camZ;
       const scale = fov / (fov + dz);
-      return {
-        x: x * scale,
-        y: yy * scale,
-        z: dz,
-        s: scale,
-      };
+      return { x: x * scale, y: yy * scale, z: dz, s: scale };
     };
 
     let last = performance.now();
@@ -74,40 +65,32 @@ export default function NeuralField({ className = '', density = 1100, stroke = f
       const dt = Math.min(32, t - last);
       last = t;
 
-      // Responsive FOV based on size
       const minDim = Math.min(width, height);
       const fov = Math.max(180, minDim * 0.9);
-      const camZ = 2.8; // camera distance
+      const camZ = 2.8;
 
-      // Animate slow rotation
       rotY += 0.0005 * dt;
       rotX += 0.0002 * dt;
 
-      // Background clear (deep black)
       ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, width, height);
 
-      // Vignette for editorial mood
       const grad = ctx.createRadialGradient(width * 0.5, height * 0.6, 0, width * 0.5, height * 0.6, Math.max(width, height) * 0.75);
       grad.addColorStop(0, 'rgba(255,255,255,0)');
       grad.addColorStop(1, 'rgba(255,255,255,0.04)');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, width, height);
 
-      // Draw points
       ctx.save();
       ctx.translate(width / 2, height / 2);
-
-      // Slight elliptical scale for a crafted look
       ctx.scale(1, 0.98);
 
-      // Depth sort to keep overlap natural
       const projected = points.map((p) => project(p, fov / 2, camZ)).sort((a, b) => b.z - a.z);
 
       for (let i = 0; i < projected.length; i++) {
         const p = projected[i];
-        const alpha = 0.2 + 0.8 * p.s; // nearer points brighter
+        const alpha = 0.2 + 0.8 * p.s;
         const size = Math.max(0.6, 2.6 * p.s);
         ctx.beginPath();
         ctx.fillStyle = `rgba(255,255,255,${Math.min(0.9, alpha)})`;
@@ -115,7 +98,6 @@ export default function NeuralField({ className = '', density = 1100, stroke = f
         ctx.fill();
       }
 
-      // Optional orbit ring
       if (stroke) {
         ctx.beginPath();
         ctx.strokeStyle = 'rgba(255,255,255,0.15)';

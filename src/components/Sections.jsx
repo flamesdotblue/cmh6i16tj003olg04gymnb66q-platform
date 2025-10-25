@@ -12,7 +12,7 @@ export default function Sections() {
   return (
     <div>
       <section id="features" className="bg-white text-black">
-        <div className="mx-auto max-w-6xl px-6 py-24 md:py-32">
+        <div className="mx-auto max-w-6xl px-6 py-28 md:py-36">
           <div className="mb-12 flex items-end justify-between">
             <h2 className="font-serif text-3xl md:text-4xl tracking-tight">Features</h2>
           </div>

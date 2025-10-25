@@ -1,62 +1,70 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import NeuralField from './NeuralField';
 
 export default function Hero() {
-  // Scroll-driven hero: tall container with sticky viewport content
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({ target: containerRef, offset: ['start start', 'end start'] });
 
-  // Background parallax and scale for the NeuralField canvas
-  const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.25]);
-  const bgRotate = useTransform(scrollYProgress, [0, 1], [0, 8]);
-  const gridY = useTransform(scrollYProgress, [0, 1], ['0%', '-20%']);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    const set = () => setIsMobile(mq.matches);
+    set();
+    mq.addEventListener ? mq.addEventListener('change', set) : mq.addListener(set);
+    return () => { mq.removeEventListener ? mq.removeEventListener('change', set) : mq.removeListener(set); };
+  }, []);
+
+  // Phase splitting: 0-0.5 intro, 0.5-1 compress + feature teaser
+  const bgScale = useTransform(scrollYProgress, [0, 0.5, 1], [1, isMobile ? 1.06 : 1.12, isMobile ? 1.12 : 1.25]);
+  const bgRotate = useTransform(scrollYProgress, [0, 1], [0, isMobile ? 5 : 10]);
+  const gridY = useTransform(scrollYProgress, [0, 1], ['0%', '-18%']);
   const vignetteOpacity = useTransform(scrollYProgress, [0, 1], [0.35, 0.6]);
 
-  // Text motion: enter from offset-left, then gently rise
-  const h1X = useTransform(scrollYProgress, [0, 0.4, 1], ['-6%', '0%', '0%']);
-  const h1Y = useTransform(scrollYProgress, [0, 1], ['8px', '-6px']);
+  // Headline entrance then gentle rise
+  const h1X = useTransform(scrollYProgress, [0, 0.35, 1], ['-6%', '0%', '0%']);
+  const h1Y = useTransform(scrollYProgress, [0, 1], ['10px', '-6px']);
   const subY = useTransform(scrollYProgress, [0, 1], ['12px', '-4px']);
-  const ctaY = useTransform(scrollYProgress, [0, 1], ['14px', '0px']);
-  const asideOpacity = useTransform(scrollYProgress, [0, 1], [0.0, 1.0]);
+  const ctaY = useTransform(scrollYProgress, [0, 1], ['16px', '0px']);
+
+  // App bar compression: title scales down and moves to top-left during second half
+  const appBarOpacity = useTransform(scrollYProgress, [0.5, 0.65, 1], [0, 1, 1]);
+  const appBarScale = useTransform(scrollYProgress, [0.5, 1], [1.1, 0.86]);
+  const appBarY = useTransform(scrollYProgress, [0.5, 1], ['14px', '0px']);
+
+  // Feature teaser slides up in phase 2
+  const teaserOpacity = useTransform(scrollYProgress, [0.45, 0.6, 1], [0, 1, 1]);
+  const teaserY = useTransform(scrollYProgress, [0.45, 1], ['24px', '0px']);
 
   return (
-    <section id="top" ref={containerRef} className="relative w-full min-h-[180vh]">
+    <section id="top" ref={containerRef} className="relative w-full min-h-[240vh]">
       <div className="sticky top-0 h-[100svh] overflow-hidden">
-        {/* Monochrome animated particle sphere background */}
+        {/* Background */}
         <motion.div style={{ scale: bgScale, rotateZ: bgRotate }} className="absolute inset-0">
-          <NeuralField className="absolute inset-0 w-full h-full" density={1500} stroke={true} />
+          <NeuralField className="absolute inset-0 w-full h-full" density={isMobile ? 1000 : 1600} stroke={!isMobile} />
         </motion.div>
 
-        {/* Editorial grid overlay (monochrome lines, parallax) */}
-        <motion.div
-          aria-hidden
-          style={{ translateY: gridY }}
-          className="pointer-events-none absolute inset-0 opacity-20"
-        >
+        {/* Editorial grid overlay */}
+        <motion.div aria-hidden style={{ translateY: gridY }} className="pointer-events-none absolute inset-0 opacity-20">
           <div
             className="absolute inset-0"
             style={{
               backgroundImage:
                 'repeating-linear-gradient(to right, rgba(255,255,255,0.08) 0, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 120px)',
-              backgroundSize: '120px 100%',
+              backgroundSize: '120px 100%'
             }}
           />
         </motion.div>
 
-        {/* Vignette for contrast control */}
-        <motion.div
-          className="pointer-events-none absolute inset-0"
-          style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.35) 35%, rgba(255,255,255,0.75) 100%)', opacity: vignetteOpacity }}
-        />
+        {/* Vignette */}
+        <motion.div className="pointer-events-none absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.35) 35%, rgba(255,255,255,0.75) 100%)', opacity: vignetteOpacity }} />
 
-        {/* Content Layout */}
+        {/* Main content grid */}
         <div className="relative z-10 mx-auto max-w-6xl h-full px-6">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-full">
-            {/* Left: Headline + sub + CTA - aligned like a modern app hero */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 xl:gap-16 h-full">
+            {/* Left column: Hero copy */}
             <div className="md:col-span-7 flex items-center">
               <div className="w-full">
-                {/* Micro label */}
                 <motion.div
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -66,7 +74,6 @@ export default function Hero() {
                   Local • Open • Private
                 </motion.div>
 
-                {/* Headline */}
                 <motion.h1
                   style={{ x: h1X, y: h1Y }}
                   initial={{ opacity: 0, y: 24 }}
@@ -77,7 +84,6 @@ export default function Hero() {
                   GlotBrowser — Your Local AI Browser
                 </motion.h1>
 
-                {/* Subheading */}
                 <motion.p
                   style={{ y: subY }}
                   initial={{ opacity: 0, y: 16 }}
@@ -88,7 +94,6 @@ export default function Hero() {
                   AI automation for any browser. Runs locally. Fully Open Source.
                 </motion.p>
 
-                {/* CTAs */}
                 <motion.div
                   style={{ y: ctaY }}
                   initial={{ opacity: 0, y: 18 }}
@@ -114,18 +119,13 @@ export default function Hero() {
               </div>
             </div>
 
-            {/* Right: Minimal app-style info rail with scrolling animation */}
+            {/* Right column: Info rail + progress */}
             <div className="md:col-span-5 relative">
-              <motion.aside
-                style={{ opacity: asideOpacity }}
-                className="hidden md:flex absolute right-0 top-24 bottom-24 w-[1px] bg-white/20"
-              >
-                {/* Progress Node */}
-                <motion.div
-                  style={{ translateY: useTransform(scrollYProgress, [0, 1], ['0%', '75%']) }}
-                  className="absolute left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-white"
-                />
-              </motion.aside>
+              <div className="hidden md:block absolute right-0 top-24 bottom-24 w-[1px] bg-white/20" />
+              <motion.div
+                style={{ translateY: useTransform(scrollYProgress, [0, 1], ['0%', '75%']) }}
+                className="hidden md:block absolute right-[-3px] top-24 w-2 h-2 rounded-full bg-white"
+              />
 
               <div className="hidden md:flex h-full items-end justify-end">
                 <motion.div
@@ -147,7 +147,7 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* Bottom scroll hint */}
+          {/* Scroll hint */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -156,7 +156,37 @@ export default function Hero() {
           >
             <div className="hidden md:block">Scroll</div>
             <div className="flex-1 mx-4 h-px bg-white/30" />
-            <div className="">Features ↓</div>
+            <div>Features ↓</div>
+          </motion.div>
+
+          {/* Compressed App Bar in phase 2 */}
+          <motion.div
+            style={{ opacity: appBarOpacity, scale: appBarScale, y: appBarY }}
+            className="pointer-events-none absolute top-20 left-6 md:left-6 text-white"
+          >
+            <div className="font-serif text-xl md:text-2xl leading-none">GlotBrowser</div>
+            <div className="text-[11px] md:text-xs tracking-wider uppercase opacity-80">Local • Open • Private</div>
+          </motion.div>
+
+          {/* Feature Teaser rising up in phase 2 */}
+          <motion.div
+            style={{ opacity: teaserOpacity, y: teaserY }}
+            className="absolute left-0 right-0 bottom-20"
+          >
+            <div className="mx-auto max-w-6xl px-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="text-white">
+                  <div className="font-mono text-xs tracking-widest opacity-70 mb-2">01</div>
+                  <div className="font-serif text-2xl leading-snug">Local-first, privacy-friendly</div>
+                  <div className="text-white/80 text-sm mt-2 max-w-md">Your data stays on your machine. No clouds, no leaks.</div>
+                </div>
+                <div className="text-white">
+                  <div className="font-mono text-xs tracking-widest opacity-70 mb-2">02</div>
+                  <div className="font-serif text-2xl leading-snug">Open Source, transparent</div>
+                  <div className="text-white/80 text-sm mt-2 max-w-md">Inspect, fork, and improve. No black boxes.</div>
+                </div>
+              </div>
+            </div>
           </motion.div>
         </div>
       </div>
