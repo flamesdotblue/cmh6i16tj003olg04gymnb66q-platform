@@ -130,13 +130,14 @@ export default function NeuralField({ className = '', density = 1100, stroke = f
       rafRef.current = requestAnimationFrame(render);
     };
 
+    const onResize = () => resize();
     resize();
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', onResize);
     rafRef.current = requestAnimationFrame(render);
 
     return () => {
       cancelAnimationFrame(rafRef.current);
-      window.removeEventListener('resize', resize);
+      window.removeEventListener('resize', onResize);
     };
   }, [density, stroke]);
 
