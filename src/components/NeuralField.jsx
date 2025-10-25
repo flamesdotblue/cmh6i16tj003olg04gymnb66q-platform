@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-// Monochrome 3D-inspired particle field shifted to the left, with embedded grayscale image
+// Monochrome 3D-inspired particle field shifted to the left, with embedded logo (original color & size)
 export default function NeuralField({ className = '', density = 1100, stroke = false, alignLeft = false }) {
   const canvasRef = useRef(null);
   const rafRef = useRef(0);
@@ -84,6 +84,7 @@ export default function NeuralField({ className = '', density = 1100, stroke = f
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, width, height);
 
+      // Left placement
       ctx.save();
       const leftX = width * (alignLeft ? 0.28 : 0.5);
       const centerY = height * 0.52;
@@ -111,28 +112,19 @@ export default function NeuralField({ className = '', density = 1100, stroke = f
         ctx.stroke();
       }
 
+      // Draw logo in original color and natural size (CSS pixels adjusted for device pixel ratio)
       if (imgReady && imgRef.current) {
-        const Rimg = minDim * 0.18;
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(0, 0, Rimg, 0, Math.PI * 2);
-        ctx.clip();
-        ctx.filter = 'grayscale(100%) contrast(110%)';
         const img = imgRef.current;
-        const aspect = img.width / img.height;
-        let drawW = Rimg * 2;
-        let drawH = drawW / aspect;
-        if (drawH < Rimg * 2) {
-          drawH = Rimg * 2;
-          drawW = drawH * aspect;
-        }
+        const drawW = img.width / device; // convert natural width (device px) to CSS px
+        const drawH = img.height / device; // convert natural height to CSS px
+        ctx.save();
         ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
-        ctx.filter = 'none';
         ctx.restore();
       }
 
       ctx.restore();
 
+      // Gentle outer vignette
       const grad = ctx.createRadialGradient(width * 0.45, height * 0.6, 0, width * 0.45, height * 0.6, Math.max(width, height) * 0.75);
       grad.addColorStop(0, 'rgba(255,255,255,0)');
       grad.addColorStop(1, 'rgba(255,255,255,0.04)');
