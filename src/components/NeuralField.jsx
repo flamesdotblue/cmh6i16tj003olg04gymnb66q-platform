@@ -115,8 +115,8 @@ export default function NeuralField({ className = '', density = 1100, stroke = f
       // Draw logo in original color and natural size (CSS pixels adjusted for device pixel ratio)
       if (imgReady && imgRef.current) {
         const img = imgRef.current;
-        const drawW = img.width / device; // convert natural width (device px) to CSS px
-        const drawH = img.height / device; // convert natural height to CSS px
+        const drawW = img.width / device;
+        const drawH = img.height / device;
         ctx.save();
         ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
         ctx.restore();

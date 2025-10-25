@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 
 const featureItems = [
   { num: '01', title: 'Local-first, privacy-friendly', body: 'Your data stays on your machine. No clouds, no leaks.' },
@@ -17,21 +16,14 @@ export default function Sections() {
             <h2 className="font-serif text-3xl md:text-4xl tracking-tight">Features</h2>
           </div>
           <div className="grid md:grid-cols-2 gap-x-16 gap-y-12">
-            {featureItems.map((f, i) => (
-              <motion.article
-                key={f.num}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.5, delay: i * 0.06 }}
-                className="flex items-start gap-6"
-              >
+            {featureItems.map((f) => (
+              <article key={f.num} className="flex items-start gap-6">
                 <div className="shrink-0 font-mono text-sm md:text-base tracking-widest">{f.num}</div>
                 <div>
                   <h3 className="font-serif text-xl md:text-2xl leading-snug">{f.title}</h3>
                   <p className="mt-2 text-sm md:text-base text-black/70 max-w-md">{f.body}</p>
                 </div>
-              </motion.article>
+              </article>
             ))}
           </div>
         </div>
