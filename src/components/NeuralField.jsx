@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-// Monochrome 3D-inspired particle field, shifted to the left side.
-// Embeds a grayscale image inside the field for an AI-browser visual cue.
+// Monochrome 3D-inspired particle field shifted to the left, with embedded grayscale image
 export default function NeuralField({ className = '', density = 1100, stroke = false, alignLeft = false }) {
   const canvasRef = useRef(null);
   const rafRef = useRef(0);
@@ -85,7 +84,6 @@ export default function NeuralField({ className = '', density = 1100, stroke = f
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, width, height);
 
-      // Translate sphere to the left side
       ctx.save();
       const leftX = width * (alignLeft ? 0.28 : 0.5);
       const centerY = height * 0.52;
@@ -113,7 +111,6 @@ export default function NeuralField({ className = '', density = 1100, stroke = f
         ctx.stroke();
       }
 
-      // Embed image inside the field as a circular clipped grayscale mark
       if (imgReady && imgRef.current) {
         const Rimg = minDim * 0.18;
         ctx.save();
@@ -122,7 +119,6 @@ export default function NeuralField({ className = '', density = 1100, stroke = f
         ctx.clip();
         ctx.filter = 'grayscale(100%) contrast(110%)';
         const img = imgRef.current;
-        // Cover image centered in the circle
         const aspect = img.width / img.height;
         let drawW = Rimg * 2;
         let drawH = drawW / aspect;
@@ -137,7 +133,6 @@ export default function NeuralField({ className = '', density = 1100, stroke = f
 
       ctx.restore();
 
-      // Gentle outer vignette
       const grad = ctx.createRadialGradient(width * 0.45, height * 0.6, 0, width * 0.45, height * 0.6, Math.max(width, height) * 0.75);
       grad.addColorStop(0, 'rgba(255,255,255,0)');
       grad.addColorStop(1, 'rgba(255,255,255,0.04)');
@@ -158,7 +153,5 @@ export default function NeuralField({ className = '', density = 1100, stroke = f
     };
   }, [density, stroke, alignLeft, imgReady]);
 
-  return (
-    <canvas ref={canvasRef} className={className} />
-  );
+  return <canvas ref={canvasRef} className={className} />;
 }
