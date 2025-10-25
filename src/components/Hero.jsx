@@ -15,54 +15,49 @@ export default function Hero() {
     return () => { mq.removeEventListener ? mq.removeEventListener('change', set) : mq.removeListener(set); };
   }, []);
 
-  // Phase splitting: 0-0.5 intro, 0.5-1 compress + feature teaser
-  const bgScale = useTransform(scrollYProgress, [0, 0.5, 1], [1, isMobile ? 1.06 : 1.12, isMobile ? 1.12 : 1.25]);
-  const bgRotate = useTransform(scrollYProgress, [0, 1], [0, isMobile ? 5 : 10]);
-  const gridY = useTransform(scrollYProgress, [0, 1], ['0%', '-18%']);
-  const vignetteOpacity = useTransform(scrollYProgress, [0, 1], [0.35, 0.6]);
+  // Phase 1 -> Phase 2
+  const bgScale = useTransform(scrollYProgress, [0, 0.5, 1], [1, isMobile ? 1.05 : 1.1, isMobile ? 1.08 : 1.2]);
+  const bgRotate = useTransform(scrollYProgress, [0, 1], [0, isMobile ? 4 : 8]);
+  const vignetteOpacity = useTransform(scrollYProgress, [0, 1], [0.35, 0.55]);
 
-  // Headline entrance then gentle rise
+  // Left-align the content more strongly and nudge on scroll
   const h1X = useTransform(scrollYProgress, [0, 0.35, 1], ['-6%', '0%', '0%']);
-  const h1Y = useTransform(scrollYProgress, [0, 1], ['10px', '-6px']);
-  const subY = useTransform(scrollYProgress, [0, 1], ['12px', '-4px']);
-  const ctaY = useTransform(scrollYProgress, [0, 1], ['16px', '0px']);
+  const h1Y = useTransform(scrollYProgress, [0, 1], ['10px', '-4px']);
+  const subY = useTransform(scrollYProgress, [0, 1], ['12px', '-2px']);
+  const ctaY = useTransform(scrollYProgress, [0, 1], ['14px', '0px']);
 
-  // App bar compression: title scales down and moves to top-left during second half
-  const appBarOpacity = useTransform(scrollYProgress, [0.5, 0.65, 1], [0, 1, 1]);
-  const appBarScale = useTransform(scrollYProgress, [0.5, 1], [1.1, 0.86]);
-  const appBarY = useTransform(scrollYProgress, [0.5, 1], ['14px', '0px']);
+  // App bar compression in phase 2
+  const appBarOpacity = useTransform(scrollYProgress, [0.55, 0.68, 1], [0, 1, 1]);
+  const appBarScale = useTransform(scrollYProgress, [0.55, 1], [1.05, 0.9]);
+  const appBarY = useTransform(scrollYProgress, [0.55, 1], ['10px', '0px']);
 
-  // Feature teaser slides up in phase 2
-  const teaserOpacity = useTransform(scrollYProgress, [0.45, 0.6, 1], [0, 1, 1]);
-  const teaserY = useTransform(scrollYProgress, [0.45, 1], ['24px', '0px']);
+  // Feature teaser rises in phase 2
+  const teaserOpacity = useTransform(scrollYProgress, [0.52, 0.65, 1], [0, 1, 1]);
+  const teaserY = useTransform(scrollYProgress, [0.52, 1], ['24px', '0px']);
+
+  // White mask handoff to reveal Features below after ~60%
+  const maskProgress = useTransform(scrollYProgress, [0.6, 1], [0, 1]);
+  const maskClipTop = useTransform(maskProgress, (p) => `${(1 - p) * 100}%`);
+  const heroBgOpacity = useTransform(scrollYProgress, [0.6, 1], [1, 0]);
 
   return (
-    <section id="top" ref={containerRef} className="relative w-full min-h-[240vh]">
+    <section id="top" ref={containerRef} className="relative w-full min-h-[260vh]">
       <div className="sticky top-0 h-[100svh] overflow-hidden">
-        {/* Background */}
-        <motion.div style={{ scale: bgScale, rotateZ: bgRotate }} className="absolute inset-0">
-          <NeuralField className="absolute inset-0 w-full h-full" density={isMobile ? 1000 : 1600} stroke={!isMobile} />
+        {/* Background: shifted to the left side, not centered */}
+        <motion.div style={{ scale: bgScale, rotateZ: bgRotate, opacity: heroBgOpacity }} className="absolute inset-0">
+          <NeuralField className="absolute inset-0 w-full h-full" density={isMobile ? 900 : 1500} stroke={!isMobile} alignLeft />
         </motion.div>
 
-        {/* Editorial grid overlay */}
-        <motion.div aria-hidden style={{ translateY: gridY }} className="pointer-events-none absolute inset-0 opacity-20">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage:
-                'repeating-linear-gradient(to right, rgba(255,255,255,0.08) 0, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 120px)',
-              backgroundSize: '120px 100%'
-            }}
-          />
-        </motion.div>
-
-        {/* Vignette */}
-        <motion.div className="pointer-events-none absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.35) 35%, rgba(255,255,255,0.75) 100%)', opacity: vignetteOpacity }} />
+        {/* Subtle vignette for contrast */}
+        <motion.div className="pointer-events-none absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.35) 35%, rgba(255,255,255,0.75) 100%)', opacity: vignetteOpacity }} />
 
         {/* Main content grid */}
         <div className="relative z-10 mx-auto max-w-6xl h-full px-6">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 xl:gap-16 h-full">
-            {/* Left column: Hero copy */}
+            {/* Left column reserved for 3D visual spacing */}
+            <div className="md:col-span-5" />
+
+            {/* Right column: headline and CTAs arranged like a modern app hero */}
             <div className="md:col-span-7 flex items-center">
               <div className="w-full">
                 <motion.div
@@ -118,61 +113,19 @@ export default function Hero() {
                 </motion.div>
               </div>
             </div>
-
-            {/* Right column: Info rail + progress */}
-            <div className="md:col-span-5 relative">
-              <div className="hidden md:block absolute right-0 top-24 bottom-24 w-[1px] bg-white/20" />
-              <motion.div
-                style={{ translateY: useTransform(scrollYProgress, [0, 1], ['0%', '75%']) }}
-                className="hidden md:block absolute right-[-3px] top-24 w-2 h-2 rounded-full bg-white"
-              />
-
-              <div className="hidden md:flex h-full items-end justify-end">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.7, ease: 'easeOut', delay: 0.15 }}
-                  className="bg-white/5 backdrop-blur px-5 py-4 border border-white/20 text-white text-sm max-w-sm"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="opacity-80">Platforms</span>
-                    <span>Windows · Mac · Linux</span>
-                  </div>
-                  <div className="mt-2 flex items-center justify-between">
-                    <span className="opacity-80">Mode</span>
-                    <span>Local-first</span>
-                  </div>
-                </motion.div>
-              </div>
-            </div>
           </div>
 
-          {/* Scroll hint */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-            className="pointer-events-none absolute left-6 right-6 bottom-6 flex items-center justify-between text-white/70 text-xs"
-          >
-            <div className="hidden md:block">Scroll</div>
-            <div className="flex-1 mx-4 h-px bg-white/30" />
-            <div>Features ↓</div>
-          </motion.div>
-
-          {/* Compressed App Bar in phase 2 */}
+          {/* Compressed app bar in phase 2 */}
           <motion.div
             style={{ opacity: appBarOpacity, scale: appBarScale, y: appBarY }}
-            className="pointer-events-none absolute top-20 left-6 md:left-6 text-white"
+            className="pointer-events-none absolute top-20 left-6 md:left-8 text-white"
           >
             <div className="font-serif text-xl md:text-2xl leading-none">GlotBrowser</div>
             <div className="text-[11px] md:text-xs tracking-wider uppercase opacity-80">Local • Open • Private</div>
           </motion.div>
 
-          {/* Feature Teaser rising up in phase 2 */}
-          <motion.div
-            style={{ opacity: teaserOpacity, y: teaserY }}
-            className="absolute left-0 right-0 bottom-20"
-          >
+          {/* Feature teaser rising in phase 2 (still part of the hero) */}
+          <motion.div style={{ opacity: teaserOpacity, y: teaserY }} className="absolute left-0 right-0 bottom-24">
             <div className="mx-auto max-w-6xl px-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="text-white">
@@ -189,6 +142,13 @@ export default function Hero() {
             </div>
           </motion.div>
         </div>
+
+        {/* White mask handoff revealing the Features section below */}
+        <motion.div
+          aria-hidden
+          className="absolute inset-0 z-[5] bg-white"
+          style={{ clipPath: maskClipTop }}
+        />
       </div>
     </section>
   );

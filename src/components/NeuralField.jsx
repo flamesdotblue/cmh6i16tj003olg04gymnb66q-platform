@@ -1,9 +1,19 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-// Monochrome 3D particle field (sphere) with subtle orbit and rotation
-export default function NeuralField({ className = '', density = 1100, stroke = false }) {
+// Monochrome 3D-inspired particle field, shifted to the left side.
+// Embeds a grayscale image inside the field for an AI-browser visual cue.
+export default function NeuralField({ className = '', density = 1100, stroke = false, alignLeft = false }) {
   const canvasRef = useRef(null);
   const rafRef = useRef(0);
+  const [imgReady, setImgReady] = useState(false);
+  const imgRef = useRef(null);
+
+  useEffect(() => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => { imgRef.current = img; setImgReady(true); };
+    img.src = 'https://iili.io/KrvuYQV.md.png';
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -23,7 +33,6 @@ export default function NeuralField({ className = '', density = 1100, stroke = f
       ctx.setTransform(device, 0, 0, device, 0, 0);
     };
 
-    // Generate points on a sphere using Fibonacci sphere
     const createPoints = (n) => {
       const pts = [];
       const phi = Math.PI * (3 - Math.sqrt(5));
@@ -76,14 +85,11 @@ export default function NeuralField({ className = '', density = 1100, stroke = f
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, width, height);
 
-      const grad = ctx.createRadialGradient(width * 0.5, height * 0.6, 0, width * 0.5, height * 0.6, Math.max(width, height) * 0.75);
-      grad.addColorStop(0, 'rgba(255,255,255,0)');
-      grad.addColorStop(1, 'rgba(255,255,255,0.04)');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, width, height);
-
+      // Translate sphere to the left side
       ctx.save();
-      ctx.translate(width / 2, height / 2);
+      const leftX = width * (alignLeft ? 0.28 : 0.5);
+      const centerY = height * 0.52;
+      ctx.translate(leftX, centerY);
       ctx.scale(1, 0.98);
 
       const projected = points.map((p) => project(p, fov / 2, camZ)).sort((a, b) => b.z - a.z);
@@ -94,7 +100,7 @@ export default function NeuralField({ className = '', density = 1100, stroke = f
         const size = Math.max(0.6, 2.6 * p.s);
         ctx.beginPath();
         ctx.fillStyle = `rgba(255,255,255,${Math.min(0.9, alpha)})`;
-        ctx.arc(p.x * minDim * 0.45, p.y * minDim * 0.45, size, 0, Math.PI * 2);
+        ctx.arc(p.x * minDim * 0.42, p.y * minDim * 0.42, size, 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -102,12 +108,41 @@ export default function NeuralField({ className = '', density = 1100, stroke = f
         ctx.beginPath();
         ctx.strokeStyle = 'rgba(255,255,255,0.15)';
         ctx.lineWidth = 1;
-        const R = minDim * 0.25;
+        const R = minDim * 0.23;
         ctx.ellipse(0, 0, R * 1.05, R * 0.85, rotY * 0.7, 0, Math.PI * 2);
         ctx.stroke();
       }
 
+      // Embed image inside the field as a circular clipped grayscale mark
+      if (imgReady && imgRef.current) {
+        const Rimg = minDim * 0.18;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(0, 0, Rimg, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.filter = 'grayscale(100%) contrast(110%)';
+        const img = imgRef.current;
+        // Cover image centered in the circle
+        const aspect = img.width / img.height;
+        let drawW = Rimg * 2;
+        let drawH = drawW / aspect;
+        if (drawH < Rimg * 2) {
+          drawH = Rimg * 2;
+          drawW = drawH * aspect;
+        }
+        ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+        ctx.filter = 'none';
+        ctx.restore();
+      }
+
       ctx.restore();
+
+      // Gentle outer vignette
+      const grad = ctx.createRadialGradient(width * 0.45, height * 0.6, 0, width * 0.45, height * 0.6, Math.max(width, height) * 0.75);
+      grad.addColorStop(0, 'rgba(255,255,255,0)');
+      grad.addColorStop(1, 'rgba(255,255,255,0.04)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, height);
 
       rafRef.current = requestAnimationFrame(render);
     };
@@ -121,7 +156,7 @@ export default function NeuralField({ className = '', density = 1100, stroke = f
       cancelAnimationFrame(rafRef.current);
       window.removeEventListener('resize', onResize);
     };
-  }, [density, stroke]);
+  }, [density, stroke, alignLeft, imgReady]);
 
   return (
     <canvas ref={canvasRef} className={className} />
