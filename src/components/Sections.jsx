@@ -11,7 +11,6 @@ const featureItems = [
 export default function Sections() {
   return (
     <div>
-      {/* Features */}
       <section id="features" className="bg-white text-black">
         <div className="mx-auto max-w-6xl px-6 py-24 md:py-32">
           <div className="mb-12 flex items-end justify-between">
@@ -38,7 +37,6 @@ export default function Sections() {
         </div>
       </section>
 
-      {/* About / Philosophy */}
       <section id="about" className="bg-black text-white">
         <div className="mx-auto max-w-6xl px-6 py-24 md:py-36">
           <div className="md:max-w-3xl">
@@ -50,7 +48,6 @@ export default function Sections() {
         </div>
       </section>
 
-      {/* Call to Action */}
       <section id="download" className="bg-white text-black border-t border-black/10">
         <div className="mx-auto max-w-6xl px-6 py-20 md:py-28">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">

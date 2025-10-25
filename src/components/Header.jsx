@@ -12,13 +12,12 @@ export default function Header() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  const base = 'fixed top-0 left-0 right-0 z-40 transition-colors duration-300';
+  const bg = scrolled ? 'bg-white/95 backdrop-blur border-b border-black/10' : 'bg-transparent';
+  const text = scrolled ? 'text-black' : 'text-white';
+
   return (
-    <header
-      className={[
-        'fixed top-0 left-0 right-0 z-40 transition-colors duration-300',
-        scrolled ? 'bg-white/95 backdrop-blur border-b border-black/10' : 'bg-transparent',
-      ].join(' ')}
-    >
+    <header className={[base, bg, text].join(' ')}>
       <div className="mx-auto max-w-6xl px-6">
         <div className="flex items-center justify-between h-16">
           <a href="#top" className="font-serif text-xl tracking-tight select-none">
